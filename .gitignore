@@ -1,0 +1,7 @@
+# Terraform/Terragrunt .gitignore
+.terraform
+.terraform.lock.hcl
+.terragrunt-cache
+*.tfstate
+*.tfstate.backup
+terragrunt
