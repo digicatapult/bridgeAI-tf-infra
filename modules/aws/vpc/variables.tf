@@ -2,7 +2,6 @@ variable "cidr_block" {}
 variable "environment" {}
 variable "profile" {}
 variable "project" {}
-variable "public_key" {}
 variable "region" {}
 variable "terraform_state_bucket_name" {}
 variable "availability_zones" {

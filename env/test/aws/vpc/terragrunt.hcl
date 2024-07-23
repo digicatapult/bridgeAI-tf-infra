@@ -21,7 +21,6 @@ inputs = {
   environment                 = local.global.environment
   profile                     = local.global.profile
   project                     = local.global.project
-  public_key                  = local.global.public_key
   region                      = local.global.region
   terraform_state_bucket_name = local.global.bucket
 }

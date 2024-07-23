@@ -21,7 +21,3 @@ output "vpc_default_security_group_id" {
 output "vpc_id" {
   value = module.vpc.vpc_id
 }
-
-output "key_name" {
-  value = aws_key_pair.node_key.key_name
-}

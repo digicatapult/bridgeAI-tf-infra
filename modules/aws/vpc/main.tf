@@ -45,8 +45,3 @@ module "subnets" {
 
   context = module.this.context
 }
-
-resource "aws_key_pair" "node_key" {
-  key_name   = "${local.namespace}-key"
-  public_key = var.public_key
-}
