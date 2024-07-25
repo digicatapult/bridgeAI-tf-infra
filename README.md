@@ -219,7 +219,7 @@ eksctl get iamserviceaccount --cluster mlops-test-cluster
 [cloudposse]: https://registry.terraform.io/namespaces/cloudposse
 [cloudposse-repository]: https://github.com/cloudposse/terraform-aws-components
 [tests]: https://developer.hashicorp.com/terraform/language/tests
-[nodegroup_api]: https://docs.aws.amazon.com/eks/latest/APIReference/API_Nodegroup.html
+[nodegroup]: https://docs.aws.amazon.com/eks/latest/APIReference/API_Nodegroup.html
 [terraformer]: https://github.com//terraformer/blob/master/docs/aws.md
 [explorer]: https://aws.amazon.com/ec2/instance-explorer/
 [addons]: https://docs.aws.amazon.com/eks/latest/userguide/eks-add-ons.html
