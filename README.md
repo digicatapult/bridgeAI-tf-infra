@@ -168,47 +168,34 @@ enable_addons: true
 addons: [
   {
     addon_name: "aws-ebs-csi-driver",
-    addon_version: "v1.33.0",
-    service_account_role_arn: arn:aws:iam::<aws_account_id>:role/mlops-service-account-role
+    addon_version: "v1.32.0-eksbuild.1",
+    service_account_role_arn: arn:aws:iam::<aws_account_id>:role/AmazonEKS_EBS_CSI_DriverRole
   },
   {
     addon_name: "aws-efs-csi-driver",
-    addon_version: "v3.0.6",
-    service_account_role_arn: arn:aws:iam::<aws_account_id>:role/mlops-service-account-role
+    addon_version: "v2.0.5-eksbuild.1",
+    service_account_role_arn: arn:aws:iam::<aws_account_id>:role/AmazonEKS_EFS_CSI_DriverRole
   }
 ]
 ```
 
+Various AWS providers offer add-on support, including Cloudposse and [AWS-IA][aws-ia]. Cloudposse's [AWS components repository][cloudposse-repository] supports several container storage interfaces (CSIs) natively, specifically using the EBS and EFS drivers above: "aws-ebs-csi-driver" and "aws-efs-csi-driver". Instructions for [adding AWS and third-party drivers][addons] can be found in the EKS documentation, which also contains detail on using `eksctl` and the individual IAM requirements for each type of add-on.
+
 
 ## Add-on support
-
-Various AWS providers offer add-on support, including Cloudposse and [AWS-IA][aws-ia]. Cloudposse's [AWS components repository][cloudposse-repository] supports several container storage interfaces (CSIs) natively, specifically using the EBS and EFS drivers above: "aws-ebs-csi-driver" and "aws-efs-csi-driver". Instructions for [adding AWS and third-party drivers][addons] can be found in the EKS documentation, which also contains detail on using `eksctl` and the individual IAM requirements for each type of add-on.
 
 To allow clusters to deploy with specific drivers, a role ARN is required for the cluster's Kubernetes service account. This ARN is provided for in the environment's YAML file, under `addons`, where each type of add-on needs to take a `service_account_role_arn` string variable.
 
 A service account role ARN can be created for the cluster by attaching an existing policy:
 
 ```bash
-cat >mlops-pod-secrets-policy.json <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": "s3:GetObject",
-            "Resource": "arn:aws:s3:::mlops-pod-secrets-bucket"
-        }
-    ]
-}
-EOF
-
-aws iam create-policy --policy-name mlops-pod-secrets-policy \
---policy-document file://mlops-pod-secrets-policy.json
-
-eksctl create iamserviceaccount --name mlops-service-account \
---namespace default --cluster mlops-test-cluster \
---role-name mlops-service-account-role \
---attach-policy-arn arn:aws:iam:::policy/mlops-pod-secrets-policy \
+eksctl create iamserviceaccount \
+--name efs-csi-controller-sa \
+--namespace kube-system \
+--cluster mlops-test-cluster \
+--role-name AmazonEKS_EFS_CSI_DriverRole \
+--role-only \
+--attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEFSCSIDriverPolicy \
 --approve
 
 eksctl get iamserviceaccount --cluster mlops-test-cluster
