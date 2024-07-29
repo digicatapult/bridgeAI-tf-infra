@@ -10,11 +10,6 @@ module "label" {
   context = module.this.context
 }
 
-module "utils" {
-  source  = "cloudposse/utils/aws"
-  version = "1.3.0"
-}
-
 module "eks_cluster" {
   source                    = "cloudposse/eks-cluster/aws"
   version                   = "4.2.0"
