@@ -19,7 +19,7 @@ locals {
   )
 
   vpc_vars = read_terragrunt_config(
-    find_in_parent_folders("vpc/terragrunt.hcl"))
+    find_in_parent_folders("aws/vpc/terragrunt.hcl"))
 }
 
 inputs = merge(
