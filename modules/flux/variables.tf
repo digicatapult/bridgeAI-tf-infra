@@ -41,7 +41,7 @@ variable "flux_path" {
 
 variable "flux_secret_name" {
   type        = string
-  default     = "sops-gpg"
+  default     = "flux-system"
 }
 
 variable "flux_version" {
