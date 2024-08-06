@@ -44,6 +44,16 @@ brew install kubectl
 kubectl version --client
 ```
 
+FluxCD `flux`:
+
+```bash
+brew install fluxcd/tap/flux
+flux version
+flux check
+```
+
+To install and bootstrap FluxCD via Terraform, the user will also require adminitrator privileges within the target GitHub organisation.
+
 
 ## Quick start
 
@@ -200,6 +210,7 @@ eksctl create iamserviceaccount \
 
 eksctl get iamserviceaccount --cluster mlops-test-cluster
 ```
+
 
 <!-- Links -->
 [bridgeai]: https://iuk.ktn-uk.org/programme/bridgeai/
