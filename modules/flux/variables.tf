@@ -29,10 +29,16 @@ variable "github_branch" {
 
 variable "github_user" {
   type        = string
+  default     = ""
+}
+
+variable "github_deploy_key_name" {
+  type        = string
 }
 
 variable "github_private_key" {
   type        = string
+  default     = ""
 }
 
 variable "flux_path" {

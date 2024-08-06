@@ -12,8 +12,8 @@ provider "flux" {
     url = "ssh://git@github.com/${var.github_org}/${var.github_repository}"
 
     ssh = {
-      username    = var.github_user
-      private_key = var.github_private_key
+      username    = "Flux"
+      private_key = tls_private_key.flux.private_key_pem
     }
 
     branch = var.github_branch
@@ -38,6 +38,21 @@ resource "github_repository" "this" {
   auto_init = var.auto_init
 }
 
+resource "tls_private_key" "flux" {
+  algorithm   = "ECDSA"
+  ecdsa_curve = "P256"
+}
+
+resource "github_repository_deploy_key" "this" {
+  title      = var.github_deploy_key_name
+  repository = var.github_repository
+  key        = tls_private_key.flux.public_key_openssh
+  read_only  = false
+  depends_on = [
+    github_repository.this
+  ]
+}
+
 resource "flux_bootstrap_git" "flux" {
   interval             = "10m"
   namespace            = "flux-system"
@@ -58,6 +73,6 @@ resource "flux_bootstrap_git" "flux" {
   ]
 
   depends_on = [
-    github_repository.this
+    github_repository_deploy_key.this
   ]
 }

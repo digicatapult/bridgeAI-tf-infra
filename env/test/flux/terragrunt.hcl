@@ -25,11 +25,10 @@ inputs = merge(
     flux_version     = local.global.flux_version
     flux_secret_name = local.global.flux_secret_name
 
-    github_org         = local.global.github_org
-    github_repository  = local.global.github_repository
-    github_branch      = local.global.github_branch
-    github_user        = local.global.github_user
-    github_private_key = local.global.github_private_key
+    github_org             = local.global.github_org
+    github_repository      = local.global.github_repository
+    github_branch          = local.global.github_branch
+    github_deploy_key_name = local.global.github_deploy_key_name
 
     cluster_name = dependency.eks.outputs.eks_cluster_id
     cluster_cert = base64decode(
