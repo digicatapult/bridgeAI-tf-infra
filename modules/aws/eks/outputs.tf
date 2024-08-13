@@ -22,6 +22,10 @@ output "eks_cluster_identity_oidc_issuer" {
   value       = module.eks_cluster.eks_cluster_identity_oidc_issuer
 }
 
+output "eks_cluster_identity_oidc_issuer_arn" {
+  value       = module.eks_cluster.eks_cluster_identity_oidc_issuer_arn
+}
+
 output "eks_cluster_managed_security_group_id" {
   value       = module.eks_cluster.eks_cluster_managed_security_group_id
 }
