@@ -1,7 +1,7 @@
-output "mlflow_s3_bucket_id" {
-  value       = module.mlflow_s3_bucket[0].s3_bucket_id
+output "bucket_id" {
+  value       = module.s3_bucket.bucket_id
 }
 
-output "mlflow_s3_bucket_arn" {
-  value       = module.mlflow_s3_bucket[0].s3_bucket_arn
+output "bucket_arn" {
+  value       = module.s3_bucket.bucket_arn
 }

@@ -14,87 +14,67 @@ provider "helm" {
   }
 }
 
-data "aws_availability_zones" "available" {}
 data "aws_caller_identity" "current" {}
 
-module "mlflow_s3_bucket" {
-  count = var.enable_mlflow ? 1 : 0
-  source  = "terraform-aws-modules/s3-bucket/aws"
-  version = ">= 4.1.2"
+module "s3_bucket" {
+  source  = "cloudposse/s3-bucket/aws"
+  version = ">= 4.7.0"
 
-  bucket_prefix = "${local.name}-artifacts-"
+  name = "bridgeai-mlflow-artifacts-storage"
 
-  force_destroy = false
-
-  server_side_encryption_configuration = {
-    rule = {
-      apply_server_side_encryption_by_default = {
-        sse_algorithm = "AES256"
-      }
-    }
-  }
+  s3_object_ownership = "BucketOwnerEnforced"
+  enabled             = true
+  user_enabled        = false
+  versioning_enabled  = false
 }
 
 module "mlflow_irsa" {
-  count = var.enable_mlflow ? 1 : 0
-  source  = "aws-ia/eks-blueprints-addon/aws"
-  version = ">= 1.1.1"
-
-  create_release = false
-
-  create_role   = true
-  create_policy = false
-
-  role_name     = local.service_account
-  role_policies = { mlflow_policy = aws_iam_policy.mlflow[0].arn }
-
-  oidc_providers = {
-    this = {
-      provider_arn    = var.eks_cluster_identity_oidc_issuer_arn
-      namespace       = local.namespace
-      service_account = local.service_account
-    }
-  }
+  source                        = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
+  version                       = "5.43.0"
+  create_role                   = true
+  role_name                     = "mlflow-artifacts-requests"
+  provider_url                  = replace(var.eks_cluster_identity_oidc_issuer, "https://", "")
+  role_policy_arns              = [aws_iam_policy.artifacts.arn]
+  oidc_fully_qualified_subjects = ["system:serviceaccount:mlflow:mlflow"]
 }
 
 resource "kubernetes_namespace" "mlflow" {
   metadata {
-    name = local.namespace
+    name = "mlflow"
   }
 }
 
 resource "kubernetes_service_account" "mlflow" {
   metadata {
-    name        = local.service_account
-    namespace   = local.namespace
-    annotations = { "eks.amazonaws.com/role-arn" : module.mlflow_irsa[0].iam_role_arn }
+    name        = "mlflow"
+    namespace   = "mlflow"
+    annotations = {
+      "eks.amazonaws.com/role-arn" : module.mlflow_irsa.iam_role_arn
+    }
   }
 
   automount_service_account_token = true
 }
 
-resource "aws_iam_policy" "mlflow" {
-  count = var.enable_mlflow ? 1 : 0
-  name_prefix = format("%s-%s-", "mlflow", "policy")
-  path        = "/"
-  policy      = data.aws_iam_policy_document.mlflow[0].json
+resource "aws_iam_policy" "artifacts" {
+  name   = "mlflow-artifact-access-policy"
+  policy = data.aws_iam_policy_document.artifacts.json
 }
 
-data "aws_iam_policy_document" "mlflow" {
-  count = var.enable_mlflow ? 1 : 0
+data "aws_iam_policy_document" "artifacts" {
   statement {
-    sid       = ""
+    sid       = "listBucket"
     effect    = "Allow"
-    resources = ["arn:aws:s3:::${module.mlflow_s3_bucket[0].s3_bucket_id}"]
+    resources = ["arn:aws:s3:::${module.s3_bucket.bucket_id}"]
 
     actions = [
       "s3:ListBucket"
     ]
   }
   statement {
-    sid       = ""
+    sid       = "useObject"
     effect    = "Allow"
-    resources = ["arn:aws:s3:::${module.mlflow_s3_bucket[0].s3_bucket_id}/*"]
+    resources = ["arn:aws:s3:::${module.s3_bucket.bucket_id}/*"]
 
     actions = [
       "s3:GetObject",
