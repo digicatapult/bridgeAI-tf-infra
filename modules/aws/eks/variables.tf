@@ -147,5 +147,4 @@ locals {
   account_id = data.aws_caller_identity.current.account_id
 
   kubeconfig_context = "arn:aws:eks:${var.region}:${local.account_id}:cluster/${module.eks_cluster.eks_cluster_id}"
-
 }
