@@ -1,78 +1,38 @@
-locals {
-  eks_cluster_oidc_issuer_url = module.eks_cluster.eks_cluster_identity_oidc_issuer
-  eks_cluster_id              = module.eks_cluster.eks_cluster_id
+module "eks_blueprints_addons" {
+  source = "aws-ia/eks-blueprints-addons/aws"
+  version = "~> 1.16.3"
 
-  addon_names                = [for k, v in var.addons : k if var.enable_addons]
-  aws_ebs_csi_driver_enabled = contains(local.addon_names, "aws-ebs-csi-driver")
-  aws_efs_csi_driver_enabled = contains(local.addon_names, "aws-efs-csi-driver")
+  cluster_name      = module.eks_cluster.eks_cluster_id
+  cluster_endpoint  = module.eks_cluster.eks_cluster_endpoint
+  cluster_version   = module.eks_cluster.eks_cluster_version
+  oidc_provider_arn = local.oidc_arn
 
-  ebs_csi_sa_needed = local.aws_ebs_csi_driver_enabled ? lookup(var.addons["aws-ebs-csi-driver"], "service_account_role_arn", null) == null : false
-  efs_csi_sa_needed = local.aws_efs_csi_driver_enabled ? lookup(var.addons["aws-efs-csi-driver"], "service_account_role_arn", null) == null : false
-  addon_service_account_role_arn_map = {
-    aws-ebs-csi-driver = module.aws_ebs_csi_driver_eks_iam_role.service_account_role_arn
-    aws-efs-csi-driver = module.aws_efs_csi_driver_eks_iam_role.service_account_role_arn
+
+  eks_addons = {
+    aws-ebs-csi-driver = {
+      most_recent              = true
+      service_account_role_arn = module.ebs_csi_driver_irsa.iam_role_arn
+    }
+
+  #enable_aws_efs_csi_driver                    = true
+  enable_aws_ebs_csi_driver                    = true
+  tags = local.tags
+}
+}
+module "ebs_csi_driver_irsa" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  version = "~> 5.20"
+
+  role_name_prefix = "mlops-ebs-csi-driver-"
+
+  attach_ebs_csi_policy = true
+
+  oidc_providers = {
+    main = {
+      provider_arn               = local.oidc_arn
+      namespace_service_accounts = ["kube-system:ebs-csi-controller-sa"]
+    }
   }
 
-  addons = [
-    for k, v in var.addons : {
-      addon_name                  = k
-      addon_version               = lookup(v, "addon_version", null)
-      configuration_values        = lookup(v, "configuration_values", null)
-      resolve_conflicts_on_create = lookup(v, "resolve_conflicts_on_create", null)
-      resolve_conflicts_on_update = lookup(v, "resolve_conflicts_on_update", null)
-      service_account_role_arn    = try(coalesce(lookup(v, "service_account_role_arn", null), lookup(local.addon_service_account_role_arn_map, k, null)), null)
-      create_timeout              = lookup(v, "create_timeout", null)
-      update_timeout              = lookup(v, "update_timeout", null)
-      delete_timeout              = lookup(v, "delete_timeout", null)
-    }
-  ]
-
-  addons_depends_on = concat([
-    module.aws_ebs_csi_driver_eks_iam_role,
-    module.aws_efs_csi_driver_eks_iam_role,]
-  )
-}
-
-resource "aws_iam_role_policy_attachment" "aws_ebs_csi_driver" {
-  count = local.ebs_csi_sa_needed ? 1 : 0
-
-  role       = module.aws_ebs_csi_driver_eks_iam_role.service_account_role_name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
-}
-
-module "aws_ebs_csi_driver_eks_iam_role" {
-  source  = "cloudposse/eks-iam-role/aws"
-  version = "2.1.1"
-
-  enabled = local.ebs_csi_sa_needed
-
-  eks_cluster_oidc_issuer_url = local.eks_cluster_oidc_issuer_url
-
-  service_account_name      = "ebs-csi-controller-sa"
-  service_account_namespace = "kube-system"
-
-  context = module.this.context
-}
-
-resource "aws_iam_role_policy_attachment" "aws_efs_csi_driver" {
-  count = local.efs_csi_sa_needed ? 1 : 0
-
-  role       = module.aws_efs_csi_driver_eks_iam_role.service_account_role_name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEFSCSIDriverPolicy"
-}
-
-module "aws_efs_csi_driver_eks_iam_role" {
-  source  = "cloudposse/eks-iam-role/aws"
-  version = "2.1.1"
-
-  enabled = local.efs_csi_sa_needed
-
-  eks_cluster_oidc_issuer_url = local.eks_cluster_oidc_issuer_url
-
-  service_account_namespace_name_list = [
-    "kube-system:efs-csi-controller-sa",
-    "kube-system:efs-csi-node-sa",
-  ]
-
-  context = module.this.context
+  tags = local.tags
 }
