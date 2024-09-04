@@ -121,21 +121,9 @@ variable "cluster_encryption_config_resources" {
   default     = ["secrets"]
 }
 
-variable "enable_addons" {
-  type        = bool
-  default     = false
-}
-
-variable "addons" {
-  type = list(object({
-    addon_name    = string
-    addon_version = string
-
-    resolve_conflicts           = optional(string, null)
-    resolve_conflicts_on_create = optional(string, null)
-    resolve_conflicts_on_update = optional(string, null)
-    service_account_role_arn    = string
-  }))
+variable "kubeconfig_path" {
+    type      = string
+    default   = "~/.kube/config"
 }
 
 locals {
@@ -152,4 +140,11 @@ locals {
 
   certificate_authority_data = try(
     module.eks_cluster.eks_cluster_certificate_authority_data, "")
+  
+  oidc_arn = try(
+    module.eks_cluster.eks_cluster_identity_oidc_issuer_arn, "")
+
+  account_id = data.aws_caller_identity.current.account_id
+
+  kubeconfig_context = "arn:aws:eks:${var.region}:${local.account_id}:cluster/${module.eks_cluster.eks_cluster_id}"
 }

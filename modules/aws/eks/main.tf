@@ -2,6 +2,19 @@ provider "aws" {
   region = var.region
 }
 
+provider "kubernetes" {
+  config_path    = var.kubeconfig_path
+  config_context = local.kubeconfig_context
+}
+provider "helm" {
+  kubernetes {
+    config_path    = var.kubeconfig_path
+    config_context = local.kubeconfig_context
+  }
+}
+
+data "aws_caller_identity" "current" {}
+
 module "label" {
   source     = "cloudposse/label/null"
   version    = "0.25.0"
@@ -15,7 +28,6 @@ module "eks_cluster" {
   version                   = "4.2.0"
 
   addons_depends_on     = [module.eks_node_group]
-  addons                = var.addons
   stage                 = var.stage
   region                = var.region
   namespace             = local.namespace

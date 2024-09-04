@@ -33,9 +33,6 @@ inputs = merge(
     max_size           = local.global.max_size
     min_size           = local.global.min_size
 
-    enable_addons = local.global.enable_addons
-    addons        = local.global.addons
-
     private_az_subnet_ids = dependency.vpc.outputs.private_az_subnet_ids
     public_az_subnet_ids  = dependency.vpc.outputs.public_az_subnet_ids
     vpc_id                = dependency.vpc.outputs.vpc_id
