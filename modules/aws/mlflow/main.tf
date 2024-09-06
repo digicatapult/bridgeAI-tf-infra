@@ -44,18 +44,6 @@ resource "kubernetes_namespace" "mlflow" {
   }
 }
 
-resource "kubernetes_service_account" "mlflow" {
-  metadata {
-    name        = "mlflow"
-    namespace   = "mlflow"
-    annotations = {
-      "eks.amazonaws.com/role-arn" : module.mlflow_irsa.iam_role_arn
-    }
-  }
-
-  automount_service_account_token = true
-}
-
 resource "aws_iam_policy" "artifacts" {
   name   = "mlflow-artifact-access-policy"
   policy = data.aws_iam_policy_document.artifacts.json
