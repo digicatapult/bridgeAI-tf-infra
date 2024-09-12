@@ -85,7 +85,7 @@ resource "aws_iam_role" "requests" {
     {
       "Effect": "Allow",
       "Principal": {
-        "Service": "ecs-tasks.amazonaws.com"
+        "AWS": "arn:aws:iam::${local.account_id}:role/cert-manager-requests"
       },
       "Action": "sts:AssumeRole"
     }
