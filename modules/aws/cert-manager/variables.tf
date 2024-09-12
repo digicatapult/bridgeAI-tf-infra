@@ -26,5 +26,7 @@ variable "kubeconfig_path" {
 locals {
   account_id = data.aws_caller_identity.current.account_id
 
+  oidc_provider = replace(var.eks_cluster_identity_oidc_issuer, "https://", "")
+
   kubeconfig_context = "arn:aws:eks:${var.region}:${local.account_id}:cluster/${var.eks_cluster_id}"
 }
