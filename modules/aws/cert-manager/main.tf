@@ -64,10 +64,40 @@ resource "kubernetes_namespace" "cert-manager" {
   }
 }
 
+resource "aws_iam_role" "requests" {
+  name               = "cert-manager-requests"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+     {
+      "Effect": "Allow",
+      "Principal": {
+          "Federated": "${var.eks_cluster_identity_oidc_issuer_arn}"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+            "${local.oidc_provider}:sub": "system:serviceaccount:cert-manager:cert-manager-controller"
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::${local.account_id}:role/cert-manager-requests"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
 module "cert_manager_irsa" {
   source                        = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
   version                       = "5.43.0"
-  create_role                   = true
+  create_role                   = false
   role_name                     = "cert-manager-requests"
   provider_url                  = replace(var.eks_cluster_identity_oidc_issuer, "https://", "")
   role_policy_arns              = [aws_iam_policy.issuers.arn]
