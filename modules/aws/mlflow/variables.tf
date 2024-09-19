@@ -2,9 +2,24 @@ variable "region" {
   type        = string
 }
 
-variable "namespace" {
+variable "bucket_prefix" {
   type        = string
-  default     = "mlflow"
+  default     = "bridgeai"
+}
+
+variable "bucket_list" {
+  type        = list
+  default     = ["mlflow", "kserve", "evidently"]
+}
+
+variable "namespace_list" {
+  type        = list
+  default     = ["mlflow", "kserve", "evidently"]
+}
+
+variable "service_account_list" {
+  type        = list
+  default     = ["mlflow", "kserve", "evidently"]
 }
 
 variable "eks_cluster_id" {

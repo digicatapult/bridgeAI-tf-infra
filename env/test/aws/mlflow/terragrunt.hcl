@@ -25,6 +25,7 @@ locals {
 inputs = merge(
   local.eks_vars.inputs,
   {
+    bucket_list                          = local.global.bucket_list
     eks_cluster_id                       = dependency.eks.outputs.eks_cluster_id
     eks_cluster_identity_oidc_issuer     = dependency.eks.outputs.eks_cluster_identity_oidc_issuer
     eks_cluster_identity_oidc_issuer_arn = dependency.eks.outputs.eks_cluster_identity_oidc_issuer_arn

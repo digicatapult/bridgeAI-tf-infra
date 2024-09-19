@@ -17,52 +17,62 @@ provider "helm" {
 data "aws_caller_identity" "current" {}
 
 module "s3_bucket" {
+  count  = "${length(var.bucket_list)}"
   source  = "cloudposse/s3-bucket/aws"
   version = ">= 4.7.0"
 
-  name = "bridgeai-mlflow-artifacts-storage"
+  name = "${var.bucket_prefix}-${var.bucket_list[count.index]}"
 
   s3_object_ownership = "BucketOwnerEnforced"
   enabled             = true
   user_enabled        = false
-  versioning_enabled  = false
+  versioning_enabled  = true
 }
 
-module "mlflow_irsa" {
+module "aws_iam_role" {
+  count                         = "${length(var.bucket_list)}"
   source                        = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
   version                       = "5.43.0"
   create_role                   = true
-  role_name                     = "mlflow-artifacts-requests"
+  role_name                     = "${var.bucket_list[count.index]}-bucket-access-role"
   provider_url                  = replace(var.eks_cluster_identity_oidc_issuer, "https://", "")
-  role_policy_arns              = [aws_iam_policy.artifacts.arn]
-  oidc_fully_qualified_subjects = ["system:serviceaccount:mlflow:mlflow"]
+  role_policy_arns              = [aws_iam_policy.artifacts[count.index].arn]
+  oidc_fully_qualified_subjects = [
+    "system:serviceaccount:${var.namespace_list[count.index]}:${var.service_account_list[count.index]}"
+  ]
 }
 
-resource "kubernetes_namespace" "mlflow" {
+resource "kubernetes_namespace" "this" {
+  for_each = {
+    for i,v in var.namespace_list: i=>v
+  }
   metadata {
-    name = "mlflow"
+    name = "${var.namespace_list[each.key]}"
   }
 }
 
 resource "aws_iam_policy" "artifacts" {
-  name   = "mlflow-artifact-access-policy"
-  policy = data.aws_iam_policy_document.artifacts.json
+  count  = "${length(var.bucket_list)}"
+  name   = "${var.bucket_list[count.index]}-bucket-access-policy"
+  policy = data.aws_iam_policy_document.access[count.index].json
 }
 
-data "aws_iam_policy_document" "artifacts" {
+data "aws_iam_policy_document" "access" {
+  count  = "${length(var.bucket_list)}"
   statement {
     sid       = "listBucket"
     effect    = "Allow"
-    resources = ["arn:aws:s3:::${module.s3_bucket.bucket_id}"]
+    resources = try(["arn:aws:s3:::${var.bucket_prefix}-${var.bucket_list[count.index]}/*"])
 
     actions = [
-      "s3:ListBucket"
+      "s3:ListBucket",
+      "s3:ListBucketVersions"
     ]
   }
   statement {
     sid       = "useObject"
     effect    = "Allow"
-    resources = ["arn:aws:s3:::${module.s3_bucket.bucket_id}/*"]
+    resources = try(["arn:aws:s3:::${var.bucket_prefix}-${var.bucket_list[count.index]}/*"])
 
     actions = [
       "s3:GetObject",
