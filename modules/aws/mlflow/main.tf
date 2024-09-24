@@ -17,11 +17,11 @@ provider "helm" {
 data "aws_caller_identity" "current" {}
 
 module "s3_bucket" {
-  count  = "${length(var.bucket_list)}"
+  count  = "${length(local.bucket_list)}"
   source  = "cloudposse/s3-bucket/aws"
   version = ">= 4.7.0"
 
-  name = "${var.bucket_prefix}-${var.bucket_list[count.index]}"
+  name = "${var.bucket_prefix}-${local.bucket_list[count.index]}"
 
   s3_object_ownership = "BucketOwnerEnforced"
   enabled             = true
@@ -29,40 +29,43 @@ module "s3_bucket" {
   versioning_enabled  = true
 }
 
-module "aws_iam_role" {
-  count                         = "${length(var.bucket_list)}"
+module "aws_iam_role_with_oidc" {
   source                        = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
   version                       = "5.43.0"
   create_role                   = true
-  role_name                     = "${var.bucket_list[count.index]}-bucket-access-role"
+  role_name                     = "mlflow-bucket-access-role"
   provider_url                  = replace(var.eks_cluster_identity_oidc_issuer, "https://", "")
-  role_policy_arns              = [aws_iam_policy.artifacts[count.index].arn]
-  oidc_fully_qualified_subjects = [
-    "system:serviceaccount:${var.namespace_list[count.index]}:${var.service_account_list[count.index]}"
-  ]
+  role_policy_arns              = [aws_iam_policy.this[0].arn]
+  oidc_fully_qualified_subjects = ["system:serviceaccount:mlflow:mlflow-tracking"]
+}
+
+module "aws_iam_role_without_oidc" {
+  source                        = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
+  version                       = "5.43.0"
+  create_role                   = true
+  role_name                     = "dvc-bucket-access-role"
+  custom_role_policy_arns       = [aws_iam_policy.this[1].arn, aws_iam_policy.this[2].arn]
+  trusted_role_arns             = ["arn:aws:iam::${local.account_id}:root"]
 }
 
 resource "kubernetes_namespace" "this" {
-  for_each = {
-    for i,v in var.namespace_list: i=>v
-  }
   metadata {
-    name = "${var.namespace_list[each.key]}"
+    name = "mlflow"
   }
 }
 
-resource "aws_iam_policy" "artifacts" {
-  count  = "${length(var.bucket_list)}"
-  name   = "${var.bucket_list[count.index]}-bucket-access-policy"
-  policy = data.aws_iam_policy_document.access[count.index].json
+resource "aws_iam_policy" "this" {
+  count  = "${length(local.bucket_list)}"
+  name   = "${local.bucket_list[count.index]}-bucket-access-policy"
+  policy = data.aws_iam_policy_document.this[count.index].json
 }
 
-data "aws_iam_policy_document" "access" {
-  count  = "${length(var.bucket_list)}"
+data "aws_iam_policy_document" "this" {
+  count  = "${length(local.bucket_list)}"
   statement {
     sid       = "listBucket"
     effect    = "Allow"
-    resources = try(["arn:aws:s3:::${var.bucket_prefix}-${var.bucket_list[count.index]}/*"])
+    resources = try(["arn:aws:s3:::${var.bucket_prefix}-${local.bucket_list[count.index]}/*"])
 
     actions = [
       "s3:ListBucket",
@@ -72,7 +75,7 @@ data "aws_iam_policy_document" "access" {
   statement {
     sid       = "useObject"
     effect    = "Allow"
-    resources = try(["arn:aws:s3:::${var.bucket_prefix}-${var.bucket_list[count.index]}/*"])
+    resources = try(["arn:aws:s3:::${var.bucket_prefix}-${local.bucket_list[count.index]}/*"])
 
     actions = [
       "s3:GetObject",

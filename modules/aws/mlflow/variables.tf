@@ -7,19 +7,16 @@ variable "bucket_prefix" {
   default     = "bridgeai"
 }
 
-variable "bucket_list" {
-  type        = list
-  default     = ["mlflow", "kserve", "evidently"]
+variable "mlflow_bucket_name" {
+  type        = string
 }
 
-variable "namespace_list" {
-  type        = list
-  default     = ["mlflow", "kserve", "evidently"]
+variable "dvc_bucket_name" {
+  type        = string
 }
 
-variable "service_account_list" {
-  type        = list
-  default     = ["mlflow", "kserve", "evidently"]
+variable "evidently_bucket_name" {
+  type        = string
 }
 
 variable "eks_cluster_id" {
@@ -40,6 +37,12 @@ variable "kubeconfig_path" {
 }
 
 locals {
+  bucket_list = [
+    var.mlflow_bucket_name,
+    var.dvc_bucket_name,
+    var.evidently_bucket_name
+  ]
+
   account_id = data.aws_caller_identity.current.account_id
 
   kubeconfig_context = "arn:aws:eks:${var.region}:${local.account_id}:cluster/${var.eks_cluster_id}"

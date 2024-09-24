@@ -25,7 +25,10 @@ locals {
 inputs = merge(
   local.eks_vars.inputs,
   {
-    bucket_list                          = local.global.bucket_list
+    mlflow_bucket_name    = local.global.mlflow_bucket_name
+    dvc_bucket_name       = local.global.dvc_bucket_name
+    evidently_bucket_name = local.global.evidently_bucket_name
+
     eks_cluster_id                       = dependency.eks.outputs.eks_cluster_id
     eks_cluster_identity_oidc_issuer     = dependency.eks.outputs.eks_cluster_identity_oidc_issuer
     eks_cluster_identity_oidc_issuer_arn = dependency.eks.outputs.eks_cluster_identity_oidc_issuer_arn
