@@ -104,13 +104,19 @@ In terms of structure, the environments will mostly comprise Terragrunt (HCL) an
 ├── env
 │   └── test
 │       ├── aws
+│       │   ├── cert-manager
 │       │   ├── eks
+│       │   ├── external-dns
+│       │   ├── mlflow
 │       │   └── vpc
 │       ├── flux
 │       └── github
 └── modules
     ├── aws
+    │   ├── cert-manager
     │   ├── eks
+    │   ├── external-dns
+    │   ├── mlflow
     │   └── vpc
     ├── flux
     └── github
@@ -155,6 +161,10 @@ profile: "digicat-mlops"
 project: "mlops"
 region: "eu-west-2"
 stage: "pipeline"
+bucket_prefix: "bridgeai"
+mlflow_bucket_name: "model-artefacts"
+dvc_bucket_name: "dvc-remote"
+evidently_bucket_name: "evidently-reports"
 ```
 
 At least two availability zones are needed for the EKS' API call `CreateCluster`, hence the above example includes "eu-west-2a" and "eu-west-2b". Given the above, the CIDR block likely ought to be sufficiently large enough to be able to distinguish public and private subnets across the different zones.
