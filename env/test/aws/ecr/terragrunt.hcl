@@ -1,6 +1,6 @@
-# MLFlow
+# ECR
 terraform {
-  source = "../../../../modules/aws/mlflow/"
+  source = "../../../../modules/aws/ecr/"
 }
 
 include {
@@ -19,15 +19,13 @@ locals {
   )
 
   eks_vars = read_terragrunt_config(
-    find_in_parent_folders("eks/terragrunt.hcl"))
+    find_in_parent_folders("aws/eks/terragrunt.hcl"))
 }
 
 inputs = merge(
   local.eks_vars.inputs,
   {
-    mlflow_bucket_name    = local.global.mlflow_bucket_name
-    dvc_bucket_name       = local.global.dvc_bucket_name
-    evidently_bucket_name = local.global.evidently_bucket_name
+    ecr_repository_name = local.global.ecr_repository_name
 
     eks_cluster_id                       = dependency.eks.outputs.eks_cluster_id
     eks_cluster_identity_oidc_issuer     = dependency.eks.outputs.eks_cluster_identity_oidc_issuer

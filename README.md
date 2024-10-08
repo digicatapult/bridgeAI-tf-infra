@@ -105,6 +105,7 @@ In terms of structure, the environments will mostly comprise Terragrunt (HCL) an
 │   └── test
 │       ├── aws
 │       │   ├── cert-manager
+│       │   ├── ecr
 │       │   ├── eks
 │       │   ├── external-dns
 │       │   ├── mlflow
@@ -114,6 +115,7 @@ In terms of structure, the environments will mostly comprise Terragrunt (HCL) an
 └── modules
     ├── aws
     │   ├── cert-manager
+    │   ├── ecr
     │   ├── eks
     │   ├── external-dns
     │   ├── mlflow
