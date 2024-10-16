@@ -62,3 +62,30 @@ module "eks_node_group" {
 
   context = module.this.context
 }
+
+module "eks_node_group_large" {
+  source                            = "cloudposse/eks-node-group/aws"
+  version                           = "3.0.1"
+
+  namespace                         = "${local.namespace}-1"
+  desired_size                      = 3
+  min_size                          = 1
+  max_size                          = 5
+  ami_type                          = var.ami_type
+  instance_types                    = ["t3.large"]
+  capacity_type                     = var.capacity_type
+  kubernetes_labels                 = var.kubernetes_labels
+  kubernetes_version                = [var.kubernetes_version]
+  subnet_ids                        = var.private_az_subnet_ids
+  cluster_name                      = module.eks_cluster.eks_cluster_id
+  create_before_destroy             = true
+
+  context = module.this.context
+
+  tags = {
+    "Attributes"  = "workers"
+    "Environment" = "test"
+    "Name"        = "mlops-test-workers"
+    "Namespace"   = "mlops"
+  }
+}
