@@ -49,7 +49,7 @@ module "aws_iam_read_only_access" {
   role_name                     = "ecr-credentials-sync-role"
   provider_url                  = local.oidc_provider
   role_policy_arns              = ["arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"]
-  oidc_fully_qualified_subjects = ["system:serviceaccount:flux-system:ecr-credentials-sync"]
+  oidc_fully_qualified_subjects = ["system:serviceaccount:airflow:ecr-credentials-sync"]
 }
 
 # Provide pull permissions for inference services
