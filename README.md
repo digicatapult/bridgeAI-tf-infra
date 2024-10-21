@@ -96,7 +96,7 @@ kubectl config get-contexts
 
 ## Structure
 
-Our modules are split between Amazon, GitHub, and Flux2, between official sources and [Cloud Posse][cloudposse], a DevOps company and AWS provider that develops its own blueprints.
+Our modules are split between AWS and Flux2, between official sources and third-party developers, such as [Cloud Posse][cloudposse].
 
 In terms of structure, the environments will mostly comprise Terragrunt (HCL) and YAML, while the infrastructure modules should be all Terraform:
 
@@ -111,7 +111,6 @@ In terms of structure, the environments will mostly comprise Terragrunt (HCL) an
 │       │   ├── mlflow
 │       │   └── vpc
 │       ├── flux
-│       └── github
 └── modules
     ├── aws
     │   ├── cert-manager
@@ -121,7 +120,6 @@ In terms of structure, the environments will mostly comprise Terragrunt (HCL) an
     │   ├── mlflow
     │   └── vpc
     ├── flux
-    └── github
 ```
 
 There is a single environment in the tree above, notionally called 'test', for testing the infrastructure with Terragrunt. Environments should be initialised with their own specific variables, provided in `./env/test/env.yaml` in this case, which are then parsed by `terragrunt.hcl`. When `terragrunt apply` is used recursively against each subdirectory under `./env/test`, the inputs and variables will serve to initialise and configure infrastructure for that particular environment.
@@ -183,45 +181,6 @@ min_size: 1
 ```
 
 These variables configure the lone cluster and its node groups. A complete listing of supported AMIs and capacity types can be found in the EKS API [Nodegroup reference sheet][nodegroup]. The [Instance Type Explorer][explorer] provides detail on the EC2 types best suited to high-performance computation, including solvers and inference-based MLOps pipelines. Size variables relate to the upper and lower bounds for when autoscaling nodes, the desired size being the value the group should maintain.
-
-```yaml
-# Add-ons
-enable_addons: true
-addons: [
-  {
-    addon_name: "aws-ebs-csi-driver",
-    addon_version: "v1.32.0-eksbuild.1",
-    service_account_role_arn: arn:aws:iam::<aws_account_id>:role/AmazonEKS_EBS_CSI_DriverRole
-  },
-  {
-    addon_name: "aws-efs-csi-driver",
-    addon_version: "v2.0.5-eksbuild.1",
-    service_account_role_arn: arn:aws:iam::<aws_account_id>:role/AmazonEKS_EFS_CSI_DriverRole
-  }
-]
-```
-
-Various AWS providers offer add-on support, including Cloudposse and [AWS-IA][aws-ia]. Cloudposse's [AWS components repository][cloudposse-repository] supports several container storage interfaces (CSIs) natively, specifically using the EBS and EFS drivers above: "aws-ebs-csi-driver" and "aws-efs-csi-driver". Instructions for [adding AWS and third-party drivers][addons] can be found in the EKS documentation, which also contains detail on using `eksctl` and the individual IAM requirements for each type of add-on.
-
-
-## Add-on support
-
-To allow clusters to deploy with specific drivers, a role ARN is required for the cluster's Kubernetes service account. This ARN is provided for in the environment's YAML file, under `addons`, where each type of add-on needs to take a `service_account_role_arn` string variable.
-
-A service account role ARN can be created for the cluster by attaching an existing policy:
-
-```bash
-eksctl create iamserviceaccount \
---name efs-csi-controller-sa \
---namespace kube-system \
---cluster mlops-test-cluster \
---role-name AmazonEKS_EFS_CSI_DriverRole \
---role-only \
---attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEFSCSIDriverPolicy \
---approve
-
-eksctl get iamserviceaccount --cluster mlops-test-cluster
-```
 
 
 <!-- Links -->
