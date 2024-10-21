@@ -60,6 +60,14 @@ module "eks_node_group" {
   cluster_name                      = module.eks_cluster.eks_cluster_id
   create_before_destroy             = true
 
+  block_device_mappings = [{
+    device_name           = "/dev/xvda"
+    volume_size           = 100
+    volume_type           = "gp3"
+    encrypted             = true
+    delete_on_termination = true
+  }]
+
   context = module.this.context
 }
 
@@ -79,6 +87,49 @@ module "eks_node_group_large" {
   subnet_ids                        = var.private_az_subnet_ids
   cluster_name                      = module.eks_cluster.eks_cluster_id
   create_before_destroy             = true
+
+  block_device_mappings = [{
+    device_name           = "/dev/xvda"
+    volume_size           = 100
+    volume_type           = "gp3"
+    encrypted             = true
+    delete_on_termination = true
+  }]
+
+  context = module.this.context
+
+  tags = {
+    "Attributes"  = "workers"
+    "Environment" = "test"
+    "Name"        = "mlops-test-workers"
+    "Namespace"   = "mlops"
+  }
+}
+
+module "eks_node_group_2xlarge" {
+  source                            = "cloudposse/eks-node-group/aws"
+  version                           = "3.0.1"
+
+  namespace                         = "${local.namespace}-2"
+  desired_size                      = 1
+  min_size                          = 1
+  max_size                          = 1
+  ami_type                          = var.ami_type
+  instance_types                    = ["t3.2xlarge"]
+  capacity_type                     = var.capacity_type
+  kubernetes_labels                 = var.kubernetes_labels
+  kubernetes_version                = [var.kubernetes_version]
+  subnet_ids                        = var.private_az_subnet_ids
+  cluster_name                      = module.eks_cluster.eks_cluster_id
+  create_before_destroy             = true
+
+  block_device_mappings = [{
+    device_name           = "/dev/xvda"
+    volume_size           = 100
+    volume_type           = "gp3"
+    encrypted             = true
+    delete_on_termination = true
+  }]
 
   context = module.this.context
 
