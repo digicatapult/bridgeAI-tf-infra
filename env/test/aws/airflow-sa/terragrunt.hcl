@@ -1,4 +1,4 @@
-# MLFlow
+# Airflow-SA
 terraform {
   source = "../../../../modules/aws/airflow-sa/"
 }
