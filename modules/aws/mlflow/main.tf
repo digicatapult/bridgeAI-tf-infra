@@ -17,7 +17,7 @@ provider "helm" {
 data "aws_caller_identity" "current" {}
 
 module "s3_bucket" {
-  count  = "${length(local.bucket_list)}"
+  count   = length(local.bucket_list)
   source  = "cloudposse/s3-bucket/aws"
   version = ">= 4.7.0"
 
@@ -40,32 +40,26 @@ module "aws_iam_role_with_oidc" {
 }
 
 module "aws_iam_role_without_oidc" {
-  source                        = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
-  version                       = "5.43.0"
-  create_role                   = true
-  role_name                     = "dvc-bucket-access-role"
-  custom_role_policy_arns       = [aws_iam_policy.this[1].arn, aws_iam_policy.this[2].arn]
-  trusted_role_arns             = ["arn:aws:iam::${local.account_id}:root"]
-}
-
-resource "kubernetes_namespace" "this" {
-  metadata {
-    name = "mlflow"
-  }
+  source                  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role"
+  version                 = "5.43.0"
+  create_role             = true
+  role_name               = "dvc-bucket-access-role"
+  custom_role_policy_arns = [aws_iam_policy.this[1].arn, aws_iam_policy.this[2].arn]
+  trusted_role_arns       = ["arn:aws:iam::${local.account_id}:root"]
 }
 
 resource "aws_iam_policy" "this" {
-  count  = "${length(local.bucket_list)}"
+  count  = length(local.bucket_list)
   name   = "${local.bucket_list[count.index]}-bucket-access-policy"
   policy = data.aws_iam_policy_document.this[count.index].json
 }
 
 data "aws_iam_policy_document" "this" {
-  count  = "${length(local.bucket_list)}"
+  count = length(local.bucket_list)
   statement {
     sid       = "listBucket"
     effect    = "Allow"
-    resources = try(["arn:aws:s3:::${var.bucket_prefix}-${local.bucket_list[count.index]}/*"])
+    resources = try(["arn:aws:s3:::${var.bucket_prefix}-${local.bucket_list[count.index]}"])
 
     actions = [
       "s3:ListBucket",
