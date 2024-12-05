@@ -78,3 +78,28 @@ data "aws_iam_policy_document" "this" {
     ]
   }
 }
+
+resource "aws_iam_user" "mlflow-s3" {
+  name = "mlflow-s3"
+}
+
+resource "aws_iam_user_policy_attachment" "mlflow-s3" {
+  user       = aws_iam_user.mlflow-s3.name
+  policy_arn = aws_iam_policy.this[0].arn
+}
+
+resource "aws_iam_access_key" "mlflow-s3" {
+  user = aws_iam_user.mlflow-s3.name
+}
+
+resource "kubernetes_secret" "mlflow-s3" {
+  metadata {
+    name      = "mlflow-s3"
+    namespace = "mlflow"
+  }
+
+  data = {
+    access_key_id     = aws_iam_access_key.mlflow-s3.id
+    secret_access_key = aws_iam_access_key.mlflow-s3.secret
+  }
+}
