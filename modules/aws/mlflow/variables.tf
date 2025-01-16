@@ -1,39 +1,39 @@
 variable "region" {
-  type        = string
+  type = string
 }
 
 variable "bucket_prefix" {
-  type        = string
-  default     = "bridgeai"
+  type    = string
+  default = "bridgeai"
 }
 
 variable "mlflow_bucket_name" {
-  type        = string
+  type = string
 }
 
 variable "dvc_bucket_name" {
-  type        = string
+  type = string
 }
 
 variable "evidently_bucket_name" {
-  type        = string
+  type = string
 }
 
 variable "eks_cluster_id" {
-    type      = string
+  type = string
 }
 
 variable "eks_cluster_identity_oidc_issuer" {
-  type        = string
+  type = string
 }
 
 variable "eks_cluster_identity_oidc_issuer_arn" {
-  type        = string
+  type = string
 }
 
 variable "kubeconfig_path" {
-    type      = string
-    default   = "~/.kube/config"
+  type    = string
+  default = "~/.kube/config"
 }
 
 locals {

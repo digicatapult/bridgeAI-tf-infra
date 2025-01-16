@@ -1,6 +1,6 @@
-# MLFlow
+# Airflow-SA
 terraform {
-  source = "../../../../modules/aws/mlflow/"
+  source = "../../../../modules/aws/airflow-sa/"
 }
 
 include {
@@ -9,6 +9,10 @@ include {
 
 dependency "eks" {
   config_path = "../eks"
+}
+
+dependency "mlflow" {
+  config_path = "../mlflow"
 }
 
 locals {
@@ -25,10 +29,11 @@ locals {
 inputs = merge(
   local.eks_vars.inputs,
   {
-    mlflow_bucket_name    = local.global.mlflow_bucket_name
-    dvc_bucket_name       = local.global.dvc_bucket_name
-    evidently_bucket_name = local.global.evidently_bucket_name
-
+    policy_arns = [
+      dependency.mlflow.outputs.policy_arn[0],
+      dependency.mlflow.outputs.policy_arn[1],
+      dependency.mlflow.outputs.policy_arn[2]
+    ]
     eks_cluster_id                       = dependency.eks.outputs.eks_cluster_id
     eks_cluster_identity_oidc_issuer     = dependency.eks.outputs.eks_cluster_identity_oidc_issuer
     eks_cluster_identity_oidc_issuer_arn = dependency.eks.outputs.eks_cluster_identity_oidc_issuer_arn
