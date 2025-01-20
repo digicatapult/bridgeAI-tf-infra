@@ -76,7 +76,6 @@ data "aws_iam_policy_document" "this" {
 
     actions = [
       "s3:GetObject",
-  
       "s3:PutObject",
       "s3:DeleteObject"
     ]
