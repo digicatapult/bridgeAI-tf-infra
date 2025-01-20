@@ -110,7 +110,6 @@ In terms of structure, the environments will mostly comprise Terragrunt (HCL) an
 │       │   ├── external-dns
 │       │   ├── mlflow
 │       │   └── vpc
-│       ├── flux
 └── modules
     ├── aws
     │   ├── cert-manager
@@ -119,7 +118,6 @@ In terms of structure, the environments will mostly comprise Terragrunt (HCL) an
     │   ├── external-dns
     │   ├── mlflow
     │   └── vpc
-    ├── flux
 ```
 
 There is a single environment in the tree above, notionally called 'test', for testing the infrastructure with Terragrunt. Environments should be initialised with their own specific variables, provided in `./env/test/env.yaml` in this case, which are then parsed by `terragrunt.hcl`. When `terragrunt apply` is used recursively against each subdirectory under `./env/test`, the inputs and variables will serve to initialise and configure infrastructure for that particular environment.
