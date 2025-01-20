@@ -16,6 +16,18 @@ provider "helm" {
 
 data "aws_caller_identity" "current" {}
 
+resource "kubernetes_namespace" "mlflow" {
+  metadata {
+    name = "mlflow"
+    labels  = {
+      "app.kubernetes.io/instance" =  "mlops"
+      "app.kubernetes.io/version" = "latest"
+      "kustomize.toolkit.fluxcd.io/name" = "flux-system"
+      "kustomize.toolkit.fluxcd.io/namespace" = "flux-system"
+    }
+  }
+}
+
 module "s3_bucket" {
   count   = length(local.bucket_list)
   source  = "cloudposse/s3-bucket/aws"
@@ -64,8 +76,7 @@ data "aws_iam_policy_document" "this" {
     actions = [
       "s3:ListBucket",
       "s3:ListBucketVersions",
-      "s3:ListObjectsV2",
-      "s3:ListObjects"
+      "s3:GetBucket*"
 
     ]
   }
@@ -98,7 +109,7 @@ resource "aws_iam_access_key" "mlflow-s3" {
 resource "kubernetes_secret" "mlflow-s3" {
   metadata {
     name      = "mlflow-s3"
-    namespace = "mlflow"
+    namespace = kubernetes_namespace.mlflow.id
   }
 
   data = {
