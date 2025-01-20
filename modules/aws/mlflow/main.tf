@@ -63,7 +63,10 @@ data "aws_iam_policy_document" "this" {
 
     actions = [
       "s3:ListBucket",
-      "s3:ListBucketVersions"
+      "s3:ListBucketVersions",
+      "s3:ListObjectsV2",
+      "s3:ListObjects"
+
     ]
   }
   statement {
@@ -73,6 +76,7 @@ data "aws_iam_policy_document" "this" {
 
     actions = [
       "s3:GetObject",
+  
       "s3:PutObject",
       "s3:DeleteObject"
     ]
