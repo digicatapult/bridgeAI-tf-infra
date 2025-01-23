@@ -7,6 +7,12 @@ provider "kubernetes" {
   config_context = local.kubeconfig_context
 }
 
+resource "kubernetes_namespace" "airflow" {
+  metadata {
+    name = "airflow"
+  }
+}
+
 data "aws_caller_identity" "current" {}
 
 module "aws_iam_role_with_oidc" {

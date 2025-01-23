@@ -14,6 +14,12 @@ provider "helm" {
   }
 }
 
+resource "kubernetes_namespace" "mlflow" {
+  metadata {
+    name = "mlflow"
+  }
+}
+
 data "aws_caller_identity" "current" {}
 
 module "s3_bucket" {
@@ -95,7 +101,7 @@ resource "aws_iam_access_key" "mlflow-s3" {
 resource "kubernetes_secret" "mlflow-s3" {
   metadata {
     name      = "mlflow-s3"
-    namespace = "mlflow"
+    namespace = kubernetes_namespace.mlflow.id
   }
 
   data = {
